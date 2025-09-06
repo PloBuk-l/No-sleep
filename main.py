@@ -22,32 +22,32 @@ ES_CONTINUOUS = 0x80000000
 ES_SYSTEM_REQUIRED = 0x00000001
 ES_DISPLAY_REQUIRED = 0x00000002
 
-class FadeButton(QPushButton):
-    """Класс для создания кнопки с эффектом свечения при наведении"""
+class GlowButton(QPushButton):
+    """Кнопка с эффектом свечения при наведении"""
     
-    def __init__(self, text, parent=None, color="#6A0DAD", hover_color="#8A2BE2"):
+    def __init__(self, text, parent=None, color="#8A2BE2", hover_color="#9b59b6"):
         super().__init__(text, parent)
         self._normal_color = QColor(color)
         self._hover_color = QColor(hover_color)
         self._current_color = self._normal_color
         self._animation = QPropertyAnimation(self, b"color")
         self._animation.setDuration(300)
-        self.setMinimumSize(140, 50)
+        self.setMinimumSize(160, 50)
         self.setCursor(Qt.PointingHandCursor)
         self.setFont(QFont("Segoe UI", 11, QFont.Bold))
         
-        # Добавляем тень
+        # Добавляем тень для эффекта свечения
         self.shadow = QGraphicsDropShadowEffect()
         self.shadow.setBlurRadius(15)
-        self.shadow.setColor(QColor(0, 0, 0, 80))
-        self.shadow.setOffset(0, 5)
+        self.shadow.setColor(QColor(138, 43, 226, 150))
+        self.shadow.setOffset(0, 0)
         self.setGraphicsEffect(self.shadow)
         
         # Устанавливаем начальный стиль
         self.update_style()
         
     def update_style(self):
-        """Обновление стиля кнопки в соответствии с текущим цветом"""
+        """Обновление стиля кнопки"""
         self.setStyleSheet(f"""
             QPushButton {{
                 border: none;
@@ -62,32 +62,34 @@ class FadeButton(QPushButton):
                 background-color: {self._hover_color.name()};
             }}
             QPushButton:pressed {{
-                background-color: #4B0082;
+                background-color: #6A0DAD;
                 padding-top: 13px;
                 padding-bottom: 11px;
             }}
         """)
         
     def enterEvent(self, event):
-        """Обработчик события наведения курсора на кнопку"""
+        """Обработчик наведения курсора на кнопку"""
         self._animation.stop()
         self._animation.setStartValue(self._normal_color)
         self._animation.setEndValue(self._hover_color)
         self._animation.start()
         
-        # Анимация тени
-        self.shadow.setBlurRadius(20)
+        # Усиливаем свечение при наведении
+        self.shadow.setBlurRadius(25)
+        self.shadow.setColor(QColor(138, 43, 226, 200))
         super().enterEvent(event)
         
     def leaveEvent(self, event):
-        """Обработчик события выхода курсора из кнопки"""
+        """Обработчик выхода курсора из кнопки"""
         self._animation.stop()
         self._animation.setStartValue(self._hover_color)
         self._animation.setEndValue(self._normal_color)
         self._animation.start()
         
-        # Анимация тени
+        # Возвращаем обычное свечение
         self.shadow.setBlurRadius(15)
+        self.shadow.setColor(QColor(138, 43, 226, 150))
         super().leaveEvent(event)
         
     def get_color(self):
@@ -101,8 +103,8 @@ class FadeButton(QPushButton):
         
     color = pyqtProperty(QColor, get_color, set_color)
 
-class ToggleSwitch(QCheckBox):
-    """Класс для создания красивого переключателя"""
+class ModernToggle(QCheckBox):
+    """Современный переключатель с плавными анимациями"""
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -110,15 +112,22 @@ class ToggleSwitch(QCheckBox):
         self.setFixedSize(60, 30)
         
         # Цвета для переключателя
-        self._bg_color = QColor("#E9E9E9")
-        self._checked_bg_color = QColor("#6A0DAD")
+        self._bg_color = QColor("#2D2D30")
+        self._checked_bg_color = QColor("#8A2BE2")
         self._circle_color = QColor("#FFFFFF")
         self._circle_position = 3
         
         # Анимация движения кружка
         self._animation = QPropertyAnimation(self, b"circle_position")
-        self._animation.setDuration(200)
-        self._animation.setEasingCurve(QEasingCurve.OutBack)
+        self._animation.setDuration(500)  # Увеличиваем длительность анимации
+        self._animation.setEasingCurve(QEasingCurve.OutBounce)  # Добавляем эффект "пружины"
+        
+        # Эффект тени
+        self.shadow = QGraphicsDropShadowEffect()
+        self.shadow.setBlurRadius(10)
+        self.shadow.setColor(QColor(138, 43, 226, 100))
+        self.shadow.setOffset(0, 0)
+        self.setGraphicsEffect(self.shadow)
         
         # Обработка изменения состояния
         self.stateChanged.connect(self.on_state_change)
@@ -150,9 +159,11 @@ class ToggleSwitch(QCheckBox):
         if state == Qt.Checked:
             self._animation.setStartValue(3)
             self._animation.setEndValue(33)
+            self.shadow.setColor(QColor(138, 43, 226, 150))
         else:
             self._animation.setStartValue(33)
             self._animation.setEndValue(3)
+            self.shadow.setColor(QColor(138, 43, 226, 100))
         self._animation.start()
         
     def mousePressEvent(self, event):
@@ -170,8 +181,50 @@ class ToggleSwitch(QCheckBox):
         
     circle_position = pyqtProperty(int, get_circle_position, set_circle_position)
 
+class AnimatedCard(QFrame):
+    """Анимированная карточка с эффектом при наведении"""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName("animatedCard")
+        self.setFrameShape(QFrame.StyledPanel)
+        self.setLineWidth(0)
+        
+        # Эффекты
+        self.shadow = QGraphicsDropShadowEffect()
+        self.shadow.setBlurRadius(15)
+        self.shadow.setColor(QColor(138, 43, 226, 80))
+        self.shadow.setOffset(0, 5)
+        self.setGraphicsEffect(self.shadow)
+        
+        # Анимация тени
+        self.shadow_animation = QPropertyAnimation(self.shadow, b"blurRadius")
+        self.shadow_animation.setDuration(300)
+        
+    def enterEvent(self, event):
+        """Анимация при наведении"""
+        self.shadow_animation.stop()
+        self.shadow_animation.setStartValue(self.shadow.blurRadius())
+        self.shadow_animation.setEndValue(25)
+        self.shadow_animation.start()
+        
+        # Усиление тени
+        self.shadow.setColor(QColor(138, 43, 226, 120))
+        super().enterEvent(event)
+        
+    def leaveEvent(self, event):
+        """Анимация при выходе"""
+        self.shadow_animation.stop()
+        self.shadow_animation.setStartValue(self.shadow.blurRadius())
+        self.shadow_animation.setEndValue(15)
+        self.shadow_animation.start()
+        
+        # Возврат тени
+        self.shadow.setColor(QColor(138, 43, 226, 80))
+        super().leaveEvent(event)
+
 class NoSleepApp(QMainWindow):
-    """Основной класс приложения с улучшенным графическим интерфейсом"""
+    """Основной класс приложения с улучшенным интерфейсом"""
     
     def __init__(self):
         super().__init__()
@@ -181,7 +234,6 @@ class NoSleepApp(QMainWindow):
         self.thread = None
         self.stop_thread = False
         self.tray_icon = None
-        self.dark_mode = False
         
         # Настройка главного окна
         self.setWindowTitle("No-Sleep - Контроль сна Windows")
@@ -222,8 +274,8 @@ class NoSleepApp(QMainWindow):
         self.timer.timeout.connect(self.update_uptime)
         self.uptime_seconds = 0
         
-        # Применение светлой темы по умолчанию
-        self.apply_light_theme()
+        # Применение темной фиолетовой темы
+        self.apply_dark_purple_theme()
         
     def setup_main_page(self):
         """Настройка главной страницы приложения"""
@@ -256,7 +308,7 @@ class NoSleepApp(QMainWindow):
         sleep_layout = QHBoxLayout()
         sleep_label = QLabel("Предотвращать спящий режим")
         sleep_label.setObjectName("settingLabel")
-        self.prevent_sleep_switch = ToggleSwitch()
+        self.prevent_sleep_switch = ModernToggle()
         sleep_layout.addWidget(sleep_label)
         sleep_layout.addStretch()
         sleep_layout.addWidget(self.prevent_sleep_switch)
@@ -267,23 +319,12 @@ class NoSleepApp(QMainWindow):
         display_layout = QHBoxLayout()
         display_label = QLabel("Предотвращать отключение дисплея")
         display_label.setObjectName("settingLabel")
-        self.prevent_display_switch = ToggleSwitch()
+        self.prevent_display_switch = ModernToggle()
         display_layout.addWidget(display_label)
         display_layout.addStretch()
         display_layout.addWidget(self.prevent_display_switch)
         self.prevent_display_switch.setChecked(True)
         settings_layout.addLayout(display_layout)
-        
-        # Переключатель темы
-        theme_layout = QHBoxLayout()
-        theme_label = QLabel("Темная тема")
-        theme_label.setObjectName("settingLabel")
-        self.theme_switch = ToggleSwitch()
-        self.theme_switch.stateChanged.connect(self.toggle_theme)
-        theme_layout.addWidget(theme_label)
-        theme_layout.addStretch()
-        theme_layout.addWidget(self.theme_switch)
-        settings_layout.addLayout(theme_layout)
         
         layout.addWidget(settings_group)
         
@@ -306,17 +347,17 @@ class NoSleepApp(QMainWindow):
         layout.addWidget(info_group)
         
         # Кнопка управления
-        self.toggle_btn = FadeButton("Запустить", color="#27AE60", hover_color="#219A73")
+        self.toggle_btn = GlowButton("Запустить", color="#27AE60", hover_color="#2ECC71")
         self.toggle_btn.clicked.connect(self.toggle_keep_awake)
         layout.addWidget(self.toggle_btn)
         
         # Кнопка инструкции
-        self.instructions_btn = FadeButton("Инструкция", color="#3498DB", hover_color="#2980B9")
+        self.instructions_btn = GlowButton("Инструкция", color="#3498DB", hover_color="#5DADE2")
         self.instructions_btn.clicked.connect(self.show_instructions)
         layout.addWidget(self.instructions_btn)
         
         # Кнопка сворачивания в трей
-        self.tray_btn = FadeButton("Свернуть в трей", color="#6A0DAD", hover_color="#8A2BE2")
+        self.tray_btn = GlowButton("Свернуть в трей", color="#8A2BE2", hover_color="#9b59b6")
         self.tray_btn.clicked.connect(self.hide_to_tray)
         layout.addWidget(self.tray_btn)
         
@@ -345,6 +386,7 @@ class NoSleepApp(QMainWindow):
         
         # Контейнер для инструкции
         instructions_container = QWidget()
+        instructions_container.setObjectName("instructionsContainer")
         instructions_layout = QVBoxLayout(instructions_container)
         instructions_layout.setContentsMargins(15, 15, 15, 15)
         
@@ -418,17 +460,16 @@ class NoSleepApp(QMainWindow):
         layout.addWidget(scroll_area)
         
         # Кнопка возврата
-        self.back_btn = FadeButton("Назад", color="#6A0DAD", hover_color="#8A2BE2")
+        self.back_btn = GlowButton("Назад", color="#8A2BE2", hover_color="#9b59b6")
         self.back_btn.clicked.connect(self.show_main_page)
         layout.addWidget(self.back_btn)
         
-    def apply_light_theme(self):
-        """Применение светлой темы"""
-        self.dark_mode = False
+    def apply_dark_purple_theme(self):
+        """Применение темной фиолетовой темы"""
         self.setStyleSheet("""
             QMainWindow {
                 background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                    stop: 0 #E6E6FA, stop: 1 #D8BFD8);
+                    stop: 0 #0C0C0E, stop: 1 #1A1A1F);
             }
             QLabel#titleLabel {
                 padding: 15px;
@@ -438,7 +479,7 @@ class NoSleepApp(QMainWindow):
                 font-size: 28px;
             }
             QLabel#descriptionLabel {
-                color: #4B0082;
+                color: #BB86FC;
                 padding: 10px;
                 font-weight: bold;
                 font-size: 12px;
@@ -449,25 +490,24 @@ class NoSleepApp(QMainWindow):
                 border-radius: 12px;
                 margin-top: 10px;
                 padding-top: 15px;
-                background: rgba(255, 255, 255, 0.7);
+                background: rgba(30, 30, 35, 200);
                 font-size: 12px;
             }
             QGroupBox#settingsGroup::title, QGroupBox#infoGroup::title {
                 subcontrol-origin: margin;
                 left: 10px;
                 padding: 0 8px 0 8px;
-                color: #6A0DAD;
+                color: #BB86FC;
                 font-size: 12px;
             }
             QLabel#settingLabel {
-                color: #4B0082;
+                color: #E0E0E0;
                 font-weight: bold;
                 font-size: 12px;
             }
             QLabel#infoLabel {
-                color: #4B0082;
+                color: #E0E0E0;
                 padding: 8px;
-                font-weight: bold;
                 font-size: 12px;
             }
             QLabel#statusLabel {
@@ -482,7 +522,7 @@ class NoSleepApp(QMainWindow):
             }
             QScrollBar:vertical {
                 border: none;
-                background: #E6E6FA;
+                background: #1E1E23;
                 width: 12px;
                 margin: 0px;
             }
@@ -502,132 +542,30 @@ class NoSleepApp(QMainWindow):
                 font-size: 20px;
             }
             QFrame#separator {
-                background-color: #D8BFD8;
+                background-color: #333;
                 margin: 15px 0;
                 max-height: 1px;
             }
             QLabel#sectionTitle {
-                color: #6A0DAD;
+                color: #BB86FC;
                 margin-top: 10px;
                 font-size: 12px;
             }
             QLabel#sectionText {
-                color: #4B0082;
+                color: #E0E0E0;
                 margin-bottom: 5px;
                 background: transparent;
                 font-size: 12px;
             }
-        """)
-        
-    def apply_dark_theme(self):
-        """Применение темной темы"""
-        self.dark_mode = True
-        self.setStyleSheet("""
-            QMainWindow {
-                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                    stop: 0 #2C3E50, stop: 1 #34495E);
-            }
-            QLabel#titleLabel {
-                padding: 15px;
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #6A0DAD, stop:1 #8A2BE2);
-                border-radius: 15px;
-                color: white;
-                font-size: 28px;
-            }
-            QLabel#descriptionLabel {
-                color: #BDC3C7;
-                padding: 10px;
-                font-weight: bold;
-                font-size: 12px;
-            }
-            QGroupBox#settingsGroup, QGroupBox#infoGroup {
-                font-weight: bold;
-                border: 2px solid #6A0DAD;
-                border-radius: 12px;
-                margin-top: 10px;
-                padding-top: 15px;
-                background: rgba(52, 73, 94, 0.7);
-                font-size: 12px;
-            }
-            QGroupBox#settingsGroup::title, QGroupBox#infoGroup::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 8px 0 8px;
-                color: #BDC3C7;
-                font-size: 12px;
-            }
-            QLabel#settingLabel {
-                color: #BDC3C7;
-                font-weight: bold;
-                font-size: 12px;
-            }
-            QLabel#infoLabel {
-                color: #BDC3C7;
-                padding: 8px;
-                font-weight: bold;
-                font-size: 12px;
-            }
-            QLabel#statusLabel {
-                color: #E74C3C;
-                font-weight: bold;
-                padding: 8px;
-                font-size: 12px;
-            }
-            QScrollArea#scrollArea {
-                border: none;
-                background: rgba(52, 73, 94, 0.7);
+            QWidget#instructionsContainer {
+                background-color: #1E1E1E;
                 border-radius: 8px;
-            }
-            QScrollBar:vertical {
-                border: none;
-                background: #2C3E50;
-                width: 12px;
-                margin: 0px;
-                border-radius: 6px;
-            }
-            QScrollBar::handle:vertical {
-                background: #6A0DAD;
-                min-height: 30px;
-                border-radius: 6px;
-            }
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
-                height: 0px;
-            }
-            QLabel#instructionsTitle {
-                padding: 15px;
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #6A0DAD, stop:1 #8A2BE2);
-                border-radius: 15px;
-                color: white;
-                font-size: 20px;
-            }
-            QFrame#separator {
-                background-color: #566573;
-                margin: 15px 0;
-                max-height: 1px;
-            }
-            QLabel#sectionTitle {
-                color: #BB8FCE;
-                margin-top: 10px;
-                font-size: 12px;
-            }
-            QLabel#sectionText {
-                color: #BDC3C7;
-                margin-bottom: 5px;
-                background: transparent;
-                font-size: 12px;
             }
             QWidget {
-                background: rgba(52, 73, 94, 0.7);
+                background: rgba(30, 30, 35, 200);
                 border-radius: 8px;
             }
         """)
-        
-    def toggle_theme(self, state):
-        """Переключение между светлой и темной темой"""
-        if state == Qt.Checked:
-            self.apply_dark_theme()
-        else:
-            self.apply_light_theme()
         
     def setup_tray(self):
         """Настройка системного трея"""
@@ -641,10 +579,6 @@ class NoSleepApp(QMainWindow):
             toggle_action = QAction("Запустить/Остановить", self)
             toggle_action.triggered.connect(self.toggle_keep_awake)
             tray_menu.addAction(toggle_action)
-            
-            theme_action = QAction("Переключить тему", self)
-            theme_action.triggered.connect(lambda: self.theme_switch.setChecked(not self.theme_switch.isChecked()))
-            tray_menu.addAction(theme_action)
             
             show_action = QAction("Показать", self)
             show_action.triggered.connect(self.show_from_tray)
@@ -702,7 +636,7 @@ class NoSleepApp(QMainWindow):
         self.stop_thread = True
         self.toggle_btn.setText("Запустить")
         self.toggle_btn._normal_color = QColor("#27AE60")
-        self.toggle_btn._hover_color = QColor("#219A73")
+        self.toggle_btn._hover_color = QColor("#2ECC71")
         self.toggle_btn.update_style()
         self.status_label.setText("Статус: неактивно")
         self.status_label.setStyleSheet("color: #E74C3C; font-weight: bold; padding: 8px; font-size: 12px;")
